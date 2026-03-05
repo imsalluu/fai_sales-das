@@ -85,22 +85,34 @@ class WeeklyActivity {
 class Opportunity {
   final String id;
   final String clientName;
-  final String title;
-  final String status;
+  final String profileName;
+  final String source;
+  final String serviceLine;
+  final String country;
+  final String queryStatus;
+  final DateTime createdAt;
 
   Opportunity({
     required this.id,
     required this.clientName,
-    required this.title,
-    required this.status,
+    required this.profileName,
+    required this.source,
+    required this.serviceLine,
+    required this.country,
+    required this.queryStatus,
+    required this.createdAt,
   });
 
   factory Opportunity.fromJson(Map<String, dynamic> json) {
     return Opportunity(
       id: json['id'] ?? '',
       clientName: json['clientName'] ?? '',
-      title: json['title'] ?? '',
-      status: json['status'] ?? '',
+      profileName: json['profileName'] ?? '',
+      source: json['source'] ?? '',
+      serviceLine: json['serviceLine'] ?? '',
+      country: json['country'] ?? '',
+      queryStatus: json['queryStatus'] ?? '',
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 }

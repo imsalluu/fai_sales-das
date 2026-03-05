@@ -1,4 +1,5 @@
 enum QueryStatus { 
+  none,
   customOfferSent, 
   briefCustomOfferSent, 
   briefReplied, 
@@ -12,6 +13,7 @@ enum QueryStatus {
 }
 
 enum ConversationStatus { 
+  none,
   needToFollowUp, 
   followUpDone, 
   sold, 
@@ -120,7 +122,7 @@ class SalesQuery {
       followUp3Done: json['f03'] ?? (json['followupCount'] != null && json['followupCount'] >= 3) ?? false,
       conversationStatus: parseEnum(json['conversationStatus'], ConversationStatus.values, ConversationStatus.needToFollowUp),
       soldBy: json['soldBy'] != null ? extractName(json['soldBy']) : null,
-      soldById: json['soldBy'] != null ? json['soldBy']['id'] : (json['soldById'] ?? null),
+      soldById: json['soldBy'] != null ? json['soldBy']['id'] : json['soldById'],
       monitoringRemark: json['remark'] ?? json['monitoringRemark'],
       assignedMemberId: json['employeeId'] ?? json['assignedMemberId'] ?? "",
       amount: (json['amount'] ?? 0).toDouble(),
@@ -160,8 +162,9 @@ class SalesQuery {
 
     if (isAdmin) {
       data['employeeName'] = employeeName;
-    } else {
-      data['employeeId'] = assignedMemberId;
+      if (assignedMemberId.isNotEmpty) {
+        data['employeeId'] = assignedMemberId;
+      }
     }
 
     if (soldById != null && soldById!.isNotEmpty) {

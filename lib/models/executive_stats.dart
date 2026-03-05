@@ -88,10 +88,24 @@ class MarketActivity {
   });
 
   factory MarketActivity.fromJson(Map<String, dynamic> json) {
+    final label = json['label'] ?? json['status'] ?? 'UNKNOWN';
+    
+    // Provide default colors if not present in JSON
+    String color = json['color'] ?? '#000000';
+    if (color == '#000000') {
+      switch (label) {
+        case 'NONE': color = '#94A3B8'; break; // Muted blue-grey
+        case 'QUOTE_SENT': color = '#F87171'; break; // Red
+        case 'BRIEF_REPLIED': color = '#34D399'; break; // Green
+        case 'CONVERTED': color = '#818CF8'; break; // Indigo
+        default: color = '#6366F1'; break;
+      }
+    }
+
     return MarketActivity(
-      label: json['label'] ?? '',
+      label: label.replaceAll('_', ' '),
       count: json['count'] ?? 0,
-      color: json['color'] ?? '#000000',
+      color: color,
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:fai_dashboard_sales/features/admin/presentation/pages/query_management_page.dart';
 import 'package:fai_dashboard_sales/models/user.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class SalesDashboard extends ConsumerWidget {
   String _getSectionTitle(DashboardSection section) {
     switch (section) {
       case DashboardSection.salesOverview: return "Sales Performance";
-      case DashboardSection.addLead: return "Register New Lead";
+      case DashboardSection.addLead: return "Register New Query";
       case DashboardSection.tasks: return "Task Board";
       case DashboardSection.mySales: return "Sales";
       default: return "Sales Center";
@@ -180,9 +181,19 @@ class _OverviewTab extends ConsumerWidget {
                   show: true,
                   rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      interval: 1,
+                      reservedSize: 30,
+                      getTitlesWidget: (val, meta) => Text(val.toInt().toString(), style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 12)),
+                    ),
+                  ),
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
+                      interval: 1,
+                      reservedSize: 30,
                       getTitlesWidget: (val, meta) {
                         if (val >= 0 && val < activity.length) return Padding(padding: const EdgeInsets.only(top: 10), child: Text(activity[val.toInt()].day, style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 12)));
                         return const SizedBox();
@@ -243,23 +254,53 @@ class _OverviewTab extends ConsumerWidget {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: opportunities.length,
                 separatorBuilder: (context, index) => Divider(height: 1, color: Colors.white.withOpacity(0.05)),
-                itemBuilder: (context, index) {
-                  final opp = opportunities[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    leading: CircleAvatar(
-                      backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                      child: const Icon(Icons.person_rounded, color: AppTheme.primaryColor, size: 20),
-                    ),
-                    title: Text(opp.clientName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                    subtitle: Text(opp.title, style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 13)),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.blue.withOpacity(0.2))),
-                      child: Text(opp.status.toUpperCase(), style: const TextStyle(color: Colors.blue, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                  );
-                },
+                  itemBuilder: (context, index) {
+                    final opp = opportunities[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      leading: CircleAvatar(
+                        backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                        child: const Icon(Icons.person_rounded, color: AppTheme.primaryColor, size: 20),
+                      ),
+                      title: Row(
+                        children: [
+                          Text(opp.clientName, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          const SizedBox(width: 8),
+                          Text("• ${opp.country}", style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                        ],
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Text(opp.profileName.replaceAll('_', ' '), style: const TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 8),
+                              Text(opp.serviceLine.replaceAll('_', ' '), style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 12)),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            DateFormat('MMM dd, yyyy • hh:mm a').format(opp.createdAt),
+                            style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 11),
+                          ),
+                        ],
+                      ),
+                      trailing: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppTheme.secondaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.secondaryColor.withOpacity(0.2)),
+                        ),
+                        child: Text(
+                          opp.queryStatus.replaceAll('_', ' ').toUpperCase(),
+                          style: const TextStyle(color: AppTheme.secondaryColor, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    );
+                  },
               ),
         ),
       ],
@@ -357,11 +398,11 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
   final _specialCommentController = TextEditingController();
   final _monitoringRemarkController = TextEditingController();
   
-  String _selectedProfile = 'AI Hook';
-  String _selectedSource = 'Query';
-  String _selectedService = 'Custom Website';
-  QueryStatus _selectedStatus = QueryStatus.quoteSent;
-  ConversationStatus _selectedConvStatus = ConversationStatus.needToFollowUp;
+  String _selectedProfile = 'NONE';
+  String _selectedSource = 'NONE';
+  String _selectedService = 'NONE';
+  QueryStatus _selectedStatus = QueryStatus.none;
+  ConversationStatus _selectedConvStatus = ConversationStatus.none;
   String? _selectedSoldBy;
   bool _f1Done = false;
   bool _f2Done = false;
@@ -418,9 +459,9 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(_isSaving ? "Saving Lead..." : "Lead Registration", style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
+              Text(_isSaving ? "Saving Query..." : "Query Registration", style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold)),
               const SizedBox(height: 4),
-              Text(_isSaving ? "Please wait while we secure your lead data" : "Enter new query details for your company's records", style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16)),
+              Text(_isSaving ? "Please wait while we secure your query data" : "Enter new query details for your company's records", style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 16)),
             ],
           ),
         ],
@@ -443,44 +484,44 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
           children: [
             Row(
               children: [
-                Expanded(child: _buildInput("Client Name *", _clientNameController, Icons.person_outline_rounded)),
+                Expanded(child: _buildInput("Client Name", _clientNameController, Icons.person_outline_rounded)),
                 const SizedBox(width: 24),
-                Expanded(child: _buildInput("Country *", _countryController, Icons.public_outlined)),
+                Expanded(child: _buildInput("Country", _countryController, Icons.public_outlined)),
               ],
             ),
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: _buildDropdown("Profile Name *", _selectedProfile, 
+                Expanded(child: _buildDropdown("Profile Name", _selectedProfile, 
                     [
-                      'Byte Craft', 'Drift AI', 'Fire AI', 'AI Byte', 
+                      'NONE', 'Byte Craft', 'Drift AI', 'Fire AI', 'AI Byte', 
                       'AI Hook', 'AI Nest', 'Zebra App', 'Turtle App', 'Logic AI'
                     ], 
                     (v) => setState(() => _selectedProfile = v!))),
                 const SizedBox(width: 24),
-                Expanded(child: _buildDropdown("Source *", _selectedSource, 
-                    ['Query', 'Brief', 'Promoted', 'Direct Order', 'Referral'], 
+                Expanded(child: _buildDropdown("Source", _selectedSource, 
+                    ['NONE', 'Query', 'Brief', 'Promoted', 'Direct Order', 'Referral'], 
                     (v) => setState(() => _selectedSource = v!))),
               ],
             ),
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: _buildDropdown("Service Line *", _selectedService, 
-                    ['Custom Website', 'Mobile App', 'AI Mobile App', 'AI Website', 'AI Agent', 'Chatbot', 'Not Clarified', 'N8N Automation', 'Bux fixing'], 
+                Expanded(child: _buildDropdown("Service Line", _selectedService, 
+                    ['NONE', 'Custom Website', 'Mobile App', 'AI Mobile App', 'AI Website', 'AI Agent', 'Chatbot', 'Not Clarified', 'N8N Automation', 'Bux fixing'], 
                     (v) => setState(() => _selectedService = v!))),
                 const SizedBox(width: 24),
-                Expanded(child: _buildInput("Quote *", _quoteController, Icons.description_outlined)),
+                Expanded(child: _buildInput("Quote", _quoteController, Icons.description_outlined)),
               ],
             ),
             const SizedBox(height: 24),
             Row(
               children: [
-                Expanded(child: _buildDropdown("Query Status *", _selectedStatus.name, 
+                Expanded(child: _buildDropdown("Query Status", _selectedStatus.name, 
                     QueryStatus.values.map((e) => e.name).toList(), 
                     (v) => setState(() => _selectedStatus = QueryStatus.values.firstWhere((e) => e.name == v)))),
                 const SizedBox(width: 24),
-                Expanded(child: _buildDropdown("Conversation Status *", _selectedConvStatus.name, 
+                Expanded(child: _buildDropdown("Conversation Status", _selectedConvStatus.name, 
                     ConversationStatus.values.map((e) => e.name).toList(), 
                     (v) => setState(() => _selectedConvStatus = ConversationStatus.values.firstWhere((e) => e.name == v)))),
               ],
@@ -493,12 +534,12 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
                     (v) => setState(() => _selectedSoldBy = v == 'None' ? null : v),
                     itemLabels: {for (var m in users) m.id: m.name, 'None': 'None'})),
                 const SizedBox(width: 24),
-                Expanded(child: _buildInput("Special Comment *", _specialCommentController, Icons.comment_outlined)),
+                Expanded(child: _buildInput("Special Comment", _specialCommentController, Icons.comment_outlined)),
               ],
             ),
             const SizedBox(height: 24),
             if (ref.watch(authProvider).user?.role == UserRole.sales_admin)
-              _buildInput("Monitoring Remark *", _monitoringRemarkController, Icons.remove_red_eye_outlined),
+              _buildInput("Monitoring Remark", _monitoringRemarkController, Icons.remove_red_eye_outlined),
             const SizedBox(height: 32),
             const Divider(color: Colors.white10),
             const SizedBox(height: 32),
@@ -513,7 +554,7 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
                   backgroundColor: AppTheme.primaryColor,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: Text(_isSaving ? "PROCESSING..." : "Register Lead in System", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text(_isSaving ? "PROCESSING..." : "Register Query in System", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -571,7 +612,6 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
         labelText: label,
         prefixIcon: Icon(icon, size: 20, color: AppTheme.mutedTextColor),
       ),
-      validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
     );
   }
 
@@ -586,7 +626,6 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
         child: Text(itemLabels != null ? (itemLabels[e] ?? e) : e, overflow: TextOverflow.ellipsis)
       )).toList(),
       onChanged: onChange,
-      validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
     );
   }
 
@@ -594,32 +633,34 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isSaving = true);
       final user = ref.read(authProvider).user;
-      String toUpperSnake(String s) {
-        if (s.isEmpty) return s;
-        String result = s.replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) => '${match.group(1)}_${match.group(2)}');
-        result = result.replaceAll(' ', '_');
-        return result.toUpperCase();
-      }
+      final isAdmin = user?.role == UserRole.sales_admin;
 
-      final data = {
-        'employeeId': user?.id ?? "",
-        'profileName': toUpperSnake(_selectedProfile),
-        'clientName': _clientNameController.text,
-        'source': toUpperSnake(_selectedSource),
-        'serviceLine': toUpperSnake(_selectedService),
-        'country': _countryController.text,
-        'quote': _quoteController.text,
-        'comment': _specialCommentController.text,
-        'queryStatus': toUpperSnake(_selectedStatus.name),
-        'followupCount': _f3Done ? 3 : (_f2Done ? 2 : (_f1Done ? 1 : 0)),
-        'conversationStatus': toUpperSnake(_selectedConvStatus.name),
-        'soldById': _selectedSoldBy, // Fixed key name
-        'remark': (user?.role == UserRole.sales_admin && _monitoringRemarkController.text.isNotEmpty) 
+      final newQuery = SalesQuery(
+        id: "", // Placeholder
+        date: DateTime.now(),
+        employeeName: user?.name ?? "Sales Guru",
+        profileName: _selectedProfile,
+        clientName: _clientNameController.text.isEmpty ? "Unknown" : _clientNameController.text,
+        source: _selectedSource,
+        serviceLine: _selectedService,
+        country: _countryController.text.isEmpty ? "N/A" : _countryController.text,
+        quote: _quoteController.text,
+        specialComment: _specialCommentController.text,
+        status: _selectedStatus,
+        conversationStatus: _selectedConvStatus,
+        assignedMemberId: user?.id ?? "",
+        followUp1Done: _f1Done,
+        followUp2Done: _f2Done,
+        followUp3Done: _f3Done,
+        soldById: _selectedSoldBy,
+        monitoringRemark: (isAdmin && _monitoringRemarkController.text.isNotEmpty) 
             ? _monitoringRemarkController.text : null,
-      };
+      );
+
+      final data = newQuery.toJson(isAdmin: isAdmin);
 
       try {
-        await ref.read(queryActionProvider.notifier).addProject(data);
+        await ref.read(queryActionProvider.notifier).addProject(data, isAdmin: isAdmin);
         if (!mounted) return;
         
         // Reset form
@@ -637,7 +678,7 @@ class _QueryFormTabState extends ConsumerState<_QueryFormTab> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Lead successfully registered in the cluster!"),
+            content: const Text("Query successfully registered in the cluster!"),
             backgroundColor: AppTheme.secondaryColor,
             behavior: SnackBarBehavior.floating,
           )

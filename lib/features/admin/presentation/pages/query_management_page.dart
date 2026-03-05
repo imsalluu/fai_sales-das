@@ -83,7 +83,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Sales", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text("Queries", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
               const SizedBox(height: 16),
               _buildHeaderActions(filteredQueries),
             ],
@@ -92,7 +92,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Sales", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
+            Text("Queries", style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white)),
             Flexible(
               child: Align(
                 alignment: Alignment.centerRight,
@@ -113,7 +113,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
       runSpacing: 12,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        Text("Total $count sales", style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 13)),
+        Text("Total $count queries", style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 13)),
         const SizedBox(width: 4),
         _buildGhostButton(
           Icons.description_outlined, 
@@ -129,7 +129,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
           icon: const Icon(Icons.add_rounded, size: 18),
-          label: const Text("Add New Sale", style: TextStyle(fontWeight: FontWeight.bold)),
+          label: const Text("Add New Queries", style: TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -177,7 +177,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
       child: TextField(
         style: const TextStyle(fontSize: 13, color: Colors.white),
         decoration: InputDecoration(
-          hintText: "Search sales...",
+          hintText: "Search queries...",
           hintStyle: const TextStyle(color: AppTheme.mutedTextColor),
           prefixIcon: const Icon(Icons.search_rounded, size: 18, color: AppTheme.mutedTextColor),
           border: InputBorder.none,
@@ -435,6 +435,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
     Color color;
 
     switch (status) {
+      case QueryStatus.none: text = "NONE"; color = Colors.grey; break;
       case QueryStatus.customOfferSent: text = "Custom Offer Sent"; color = Colors.blue; break;
       case QueryStatus.briefCustomOfferSent: text = "Brief Custom Offer Sent"; color = Colors.lightBlue; break;
       case QueryStatus.briefReplied: text = "Brief Replied"; color = Colors.cyan; break;
@@ -455,6 +456,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
     Color color;
 
     switch (status) {
+      case ConversationStatus.none: text = "NONE"; color = Colors.grey; break;
       case ConversationStatus.needToFollowUp: text = "Need to Follow-up"; color = Colors.orange; break;
       case ConversationStatus.followUpDone: text = "Follow-up Done"; color = Colors.blue; break;
       case ConversationStatus.sold: text = "Sold"; color = Colors.green; break;
@@ -572,7 +574,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
   late String _monitoringRemark;
   
   final List<String> _validProfiles = [
-    'Byte Craft', 'Drift AI', 'Fire AI', 'AI Byte', 
+    'NONE', 'Byte Craft', 'Drift AI', 'Fire AI', 'AI Byte', 
     'AI Hook', 'AI Nest', 'Zebra App', 'Turtle App', 'Logic AI'
   ];
 
@@ -700,7 +702,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                     DropdownButtonFormField<String>(
                       value: _profileName,
                       decoration: const InputDecoration(
-                        labelText: "Profile Name ",
+                        labelText: "Profile Name",
                         prefixIcon: Icon(Icons.business_center_outlined, size: 20, color: AppTheme.mutedTextColor),
                       ),
                       dropdownColor: AppTheme.cardColor,
@@ -709,16 +711,19 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                     ),
                   ),
                 ] else ...[
-                   DropdownButtonFormField<String>(
-                    value: _profileName,
-                    decoration: const InputDecoration(
-                      labelText: "Profile Name ",
-                      prefixIcon: Icon(Icons.business_center_outlined, size: 20, color: AppTheme.mutedTextColor),
+                   _buildRow(
+                     DropdownButtonFormField<String>(
+                      value: _profileName,
+                      decoration: const InputDecoration(
+                        labelText: "Profile Name",
+                        prefixIcon: Icon(Icons.business_center_outlined, size: 20, color: AppTheme.mutedTextColor),
+                      ),
+                      dropdownColor: AppTheme.cardColor,
+                      items: _validProfiles.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
+                      onChanged: (val) => setState(() => _profileName = val!),
                     ),
-                    dropdownColor: AppTheme.cardColor,
-                    items: _validProfiles.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                    onChanged: (val) => setState(() => _profileName = val!),
-                  ),
+                    const SizedBox.shrink(),
+                   ),
                 ],
                 const SizedBox(height: 20),
                 _buildRow(
@@ -738,7 +743,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                     ),
                     dropdownColor: AppTheme.cardColor,
                     items: (() {
-                      final items = ['Query', 'Brief', 'Promoted', 'Direct Order', 'Referral'];
+                      final items = ['NONE', 'Query', 'Brief', 'Promoted', 'Direct Order', 'Referral'];
                       if (!items.contains(_source)) items.add(_source);
                       return items;
                     })().map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
@@ -756,7 +761,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                     dropdownColor: AppTheme.cardColor,
                     items: (() {
                       final items = [
-                        'Custom Website', 'Mobile App', 'AI Mobile App', 
+                        'NONE', 'Custom Website', 'Mobile App', 'AI Mobile App', 
                         'AI Website', 'AI Agent', 'Chatbot', 'Not Clarified', 
                         'N8N Automation', 'Bug Fixing'
                       ];
@@ -958,7 +963,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(widget.initialQuery == null ? "Sale saved successfully" : "Sale updated successfully"),
+                    content: Text(widget.initialQuery == null ? "Query saved successfully" : "Query updated successfully"),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -966,7 +971,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                 final error = ref.read(queryActionProvider).error;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(error?.toString() ?? "Failed to save sale. Please try again."),
+                    content: Text(error?.toString() ?? "Failed to save query. Please try again."),
                     backgroundColor: Colors.red,
                   ),
                 );
@@ -981,7 +986,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
             }
           },
           style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondaryColor),
-          child: Text(widget.initialQuery == null ? "Save Sale" : "Update Sale"),
+          child: Text(widget.initialQuery == null ? "Save Query" : "Update Query"),
         ),
       ],
     );

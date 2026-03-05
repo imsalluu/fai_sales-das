@@ -114,7 +114,7 @@ class DashboardLayout extends ConsumerWidget {
       ),
       _SidebarItem(
         icon: Icons.chat_bubble_outline_rounded,
-        title: "Sales",
+        title: "All Queries",
         isActive: current == DashboardSection.queries,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.queries,
       ),
@@ -143,7 +143,7 @@ class DashboardLayout extends ConsumerWidget {
       ),
       _SidebarItem(
         icon: Icons.chat_bubble_outline_rounded,
-        title: "Sales",
+        title: "All Queries",
         isActive: current == DashboardSection.mySales,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.mySales,
       ),
@@ -254,10 +254,27 @@ class DashboardLayout extends ConsumerWidget {
                         children: [
                           const SizedBox(height: 4),
                           Text(n.message, style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 13)),
-                          const SizedBox(height: 4),
-                          Text(
-                            DateFormat('MMM dd, hh:mm a').format(n.createdAt),
-                            style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                                ),
+                                child: Text(
+                                  n.type.replaceAll('_', ' '),
+                                  style: const TextStyle(color: AppTheme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                DateFormat('MMM dd, hh:mm a').format(n.createdAt),
+                                style: const TextStyle(color: AppTheme.mutedTextColor, fontSize: 10),
+                              ),
+                            ],
                           ),
                         ],
                       ),
