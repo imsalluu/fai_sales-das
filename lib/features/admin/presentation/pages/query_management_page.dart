@@ -22,8 +22,8 @@ class QueryManagementPage extends ConsumerStatefulWidget {
 }
 
 class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
-  static const double columnSum = 2480;
-  static const double tableWidth = columnSum + 24; // 24 is horizonzal padding (12*2)
+  double _getColumnSum(bool isAdmin) => 2480 + (isAdmin ? 80 : 0);
+  double _getTableWidth(bool isAdmin) => _getColumnSum(isAdmin) + 24; // 24 is horizonzal padding (12*2)
   
   String _searchQuery = "";
   String? _selectedEmployeeName;
@@ -71,7 +71,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
           error: (_, __) => _buildFilterBar([]),
         ),
         const SizedBox(height: 24),
-        _buildTableContainer(queriesAsync),
+        _buildTableContainer(queriesAsync, ref.watch(authProvider).user?.role == UserRole.sales_admin),
       ],
     );
   }
@@ -239,7 +239,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
     );
   }
 
-  Widget _buildTableContainer(AsyncValue<List<SalesQuery>> queriesAsync) {
+  Widget _buildTableContainer(AsyncValue<List<SalesQuery>> queriesAsync, bool isAdmin) {
     return Expanded(
       child: Container(
         decoration: BoxDecoration(
@@ -253,14 +253,14 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
           loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.secondaryColor)),
           error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
           data: (queries) => LayoutBuilder(
-            builder: (context, constraints) => _buildTable(constraints.maxHeight, _getFilteredQueries(queries)),
+            builder: (context, constraints) => _buildTable(constraints.maxHeight, _getFilteredQueries(queries), isAdmin),
           ),
         ),
       ),
     );
   }
 
- Widget _buildTable(double height, List<SalesQuery> queries) {
+ Widget _buildTable(double height, List<SalesQuery> queries, bool isAdmin) {
   return Scrollbar(
     controller: _horizontalScrollController,
     thumbVisibility: true,
@@ -273,10 +273,10 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
       scrollDirection: Axis.horizontal,
       physics: const ClampingScrollPhysics(),
       child: SizedBox(
-        width: tableWidth,
+        width: _getTableWidth(isAdmin),
         child: Column(
           children: [
-            _buildStickyHeader(),
+            _buildStickyHeader(isAdmin),
 
             // ✅ FIX: height explicitly defined
             SizedBox(
@@ -286,7 +286,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
                 physics: const ClampingScrollPhysics(),
                 itemBuilder: (context, index) {
                   final q = queries[index];
-                  return _buildTableRow(q, index);
+                  return _buildTableRow(q, index, isAdmin);
                 },
               ),
             ),
@@ -299,14 +299,14 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
 
   
 
-  Widget _buildStickyHeader() {
+  Widget _buildStickyHeader(bool isAdmin) {
   return Container(
     height: 44, // 🔥 FIXED SMALL HEIGHT
     alignment: Alignment.centerLeft,
     color: Colors.white.withOpacity(0.04),
     padding: const EdgeInsets.symmetric(horizontal: 12),
     child: SizedBox(
-      width: columnSum,
+      width: _getColumnSum(isAdmin),
       child: Row(
         children: [
           const SizedBox(
@@ -339,6 +339,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
           _HeaderCell("Conv. Status", 160),
           _HeaderCell("Sold By", 150),
           _HeaderCell("Monitoring Remark", 250),
+          if (isAdmin) _HeaderCell("Action", 80),
         ],
       ),
     ),
@@ -353,7 +354,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
     ));
   }
 
-  Widget _buildTableRow(SalesQuery q, int index) {
+  Widget _buildTableRow(SalesQuery q, int index, bool isAdmin) {
     return InkWell(
       onTap: () => _showEditQueryDialog(q),
       child: Container(
@@ -363,7 +364,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
         ),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12), // Consistent padding with header
         child: Container(
-          width: columnSum, // Ensure exact alignment
+          width: _getColumnSum(isAdmin), // Ensure exact alignment
           child: Row(
             children: [
               SizedBox(width: 50, child: Padding(
@@ -392,9 +393,56 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
               )),
               _DataCell(q.soldBy ?? "-", 150),
               _DataCell(q.monitoringRemark ?? "-", 250),
+              if (isAdmin) 
+                SizedBox(
+                  width: 80,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                        onPressed: () => _showDeleteConfirmation(q),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(SalesQuery query) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.cardColor,
+        title: const Text("Delete Query", style: TextStyle(color: Colors.white)),
+        content: const Text("Are you sure you want to delete this query?", style: TextStyle(color: AppTheme.mutedTextColor)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final success = await ref.read(queryActionProvider.notifier).deleteProject(query.id);
+              if (success && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Query deleted successfully"), backgroundColor: Colors.green),
+                );
+              } else if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Failed to delete query"), backgroundColor: Colors.red),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text("Yes, Delete"),
+          ),
+        ],
       ),
     );
   }

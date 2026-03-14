@@ -81,6 +81,10 @@ class ApiService {
     );
   }
 
+  Future<NetworkResponse> deleteProject(String id) async {
+    return _client.deleteRequest('$_baseUrl/projects/$id');
+  }
+
   Future<NetworkResponse> getPerformance() async {
     return _client.getRequest('$_baseUrl/performance');
   }

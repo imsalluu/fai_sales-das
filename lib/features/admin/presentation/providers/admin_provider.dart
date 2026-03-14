@@ -243,6 +243,27 @@ class QueryNotifier extends StateNotifier<AsyncValue<void>> {
       return null;
     }
   }
+
+  Future<bool> deleteProject(String id) async {
+    try {
+      state = const AsyncValue.loading();
+      final response = await _apiService.deleteProject(id);
+      if (response.isSuccess) {
+        state = const AsyncValue.data(null);
+        _ref.invalidate(projectsProvider);
+        return true;
+      } else {
+        state = AsyncValue.error(
+          response.errorMassage ?? 'Failed to delete project',
+          StackTrace.current,
+        );
+        return false;
+      }
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
 }
 
 final queryActionProvider =
