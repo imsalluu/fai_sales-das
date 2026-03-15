@@ -49,19 +49,19 @@ class DashboardStatsSummary {
 }
 
 class DashboardCounters {
-  final int pendingQuotes;
+  final int potentialClients;
   final int followupsToday;
   final int highValueLeads;
 
   DashboardCounters({
-    required this.pendingQuotes,
+    required this.potentialClients,
     required this.followupsToday,
     required this.highValueLeads,
   });
 
   factory DashboardCounters.fromJson(Map<String, dynamic> json) {
     return DashboardCounters(
-      pendingQuotes: json['pendingQuotes'] ?? 0,
+      potentialClients: json['potentialClients'] ?? 0,
       followupsToday: json['followupsToday'] ?? 0,
       highValueLeads: json['highValueLeads'] ?? 0,
     );

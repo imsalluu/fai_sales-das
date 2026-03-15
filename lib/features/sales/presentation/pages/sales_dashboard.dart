@@ -223,7 +223,7 @@ class _OverviewTab extends ConsumerWidget {
   Widget _buildQuickActions(DashboardCounters counters) {
     return Column(
       children: [
-        _ActionItem(title: "Pending Quotes", count: counters.pendingQuotes.toString(), icon: Icons.pending_actions_rounded, color: Colors.orange),
+        _ActionItem(title: "Potential Client", count: counters.potentialClients.toString(), icon: Icons.pending_actions_rounded, color: Colors.orange),
         const SizedBox(height: 20),
         _ActionItem(title: "Follow-ups Today", count: counters.followupsToday.toString(), icon: Icons.notifications_active_rounded, color: Colors.red),
         const SizedBox(height: 20),
