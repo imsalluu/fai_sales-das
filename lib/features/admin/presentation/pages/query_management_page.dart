@@ -360,7 +360,9 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
       child: Container(
         decoration: BoxDecoration(
           border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.03))),
-          color: index % 2 == 0 ? Colors.transparent : Colors.white.withOpacity(0.01),
+
+          color:q.conversationStatus==ConversationStatus.sold?Colors.green:
+          index % 2 == 0 ? Colors.transparent : Colors.white.withOpacity(0.01),
         ),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12), // Consistent padding with header
         child: Container(
