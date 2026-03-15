@@ -23,11 +23,18 @@ class QueryManagementPage extends ConsumerStatefulWidget {
 
 class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
   double _getColumnSum(bool isAdmin) => 2480 + (isAdmin ? 80 : 0);
-  double _getTableWidth(bool isAdmin) => _getColumnSum(isAdmin) + 24; // 24 is horizonzal padding (12*2)
+  double _getTableWidth(bool isAdmin) => _getColumnSum(isAdmin) + 24; 
   
+
+
   String _searchQuery = "";
   String? _selectedEmployeeName;
+  String? _selectedProfileName;
+  ConversationStatus? _selectedConvStatus;
+  QueryStatus? _selectedQueryStatus;
   final _horizontalScrollController = ScrollController();
+
+
 
   @override
   void dispose() {
@@ -40,18 +47,24 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
       final matchesSearch = q.clientName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           q.employeeName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           q.id.toLowerCase().contains(_searchQuery.toLowerCase());
-      
+
       final matchesEmployee = _selectedEmployeeName == null || q.employeeName == _selectedEmployeeName;
+      final matchesProfile = _selectedProfileName == null || q.profileName.toLowerCase() == _selectedProfileName!.toLowerCase();
+      final matchesConvStatus = _selectedConvStatus == null || q.conversationStatus == _selectedConvStatus;
+      final matchesQueryStatus = _selectedQueryStatus == null || q.status == _selectedQueryStatus;
       final matchesMemberId = widget.memberId == null || q.assignedMemberId == widget.memberId;
-      
-      return matchesSearch && matchesEmployee && matchesMemberId;
+
+      return matchesSearch && matchesEmployee && matchesProfile && matchesConvStatus && matchesQueryStatus && matchesMemberId;
     }).toList();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
     final queriesAsync = ref.watch(projectsProvider);
     final usersAsync = ref.watch(allUsersProvider);
+    final isAdmin = ref.watch(authProvider).user?.role == UserRole.sales_admin;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,12 +79,12 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
         ),
         const SizedBox(height: 24),
         usersAsync.when(
-          data: (users) => _buildFilterBar(users),
-          loading: () => _buildFilterBar([]),
-          error: (_, __) => _buildFilterBar([]),
+          data: (users) => _buildFilterBar(users, isAdmin),
+          loading: () => _buildFilterBar([], isAdmin),
+          error: (_, __) => _buildFilterBar([], isAdmin),
         ),
         const SizedBox(height: 24),
-        _buildTableContainer(queriesAsync, ref.watch(authProvider).user?.role == UserRole.sales_admin),
+        _buildTableContainer(queriesAsync, isAdmin),
       ],
     );
   }
@@ -79,7 +92,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
   Widget _buildHeader(List<SalesQuery> filteredQueries) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 1400) { // Increased breakpoint to prevent header overflow
+        if (constraints.maxWidth < 1400) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -150,16 +163,70 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
     );
   }
 
-  Widget _buildFilterBar(List<User> users) {
+  Widget _buildFilterBar(List<User> users, bool isAdmin) {
+    final profiles = ['All Profiles', 'Byte Craft', 'Drift AI', 'Fire AI', 'AI Byte', 'AI Hook', 'AI Nest', 'Zebra App', 'Turtle App', 'Logic AI'];
+
+    String getQueryStatusLabel(QueryStatus s) {
+      String label = s.name.replaceAll(RegExp(r'(?=[A-Z])'), ' ').toUpperCase();
+      return label;
+    }
+
+    String getConvStatusLabel(ConversationStatus s) {
+      String label = s.name.replaceAll(RegExp(r'(?=[A-Z])'), ' ').toUpperCase();
+      return label;
+    }
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
           _buildFilterSearch(),
           const SizedBox(width: 12),
-          _buildFilterDropdown("Select Employee Name", _selectedEmployeeName, ['All Employees', ...users.map((m) => m.name)], (v) => setState(() {
-            _selectedEmployeeName = (v == 'All Employees') ? null : v;
-          })),
+          
+          if (isAdmin) ...[
+            _buildFilterDropdown(
+              "Select Employee Name", 
+              _selectedEmployeeName, 
+              ['All Employees', ...users.map((m) => m.name)], 
+              (v) => setState(() => _selectedEmployeeName = (v == 'All Employees') ? null : v)
+            ),
+            const SizedBox(width: 12),
+          ],
+
+          _buildFilterDropdown(
+            "Select Profile", 
+            _selectedProfileName, 
+            profiles, 
+            (v) => setState(() => _selectedProfileName = (v == 'All Profiles') ? null : v)
+          ),
+          const SizedBox(width: 12),
+
+           _buildFilterDropdown(
+            "Conv. Status", 
+            _selectedConvStatus != null ? getConvStatusLabel(_selectedConvStatus!) : null, 
+            ['All Status', ...ConversationStatus.values.map((e) => getConvStatusLabel(e))], 
+            (v) => setState(() {
+              if (v == 'All Status') {
+                _selectedConvStatus = null;
+              } else {
+                _selectedConvStatus = ConversationStatus.values.firstWhere((e) => getConvStatusLabel(e) == v);
+              }
+            })
+          ),
+          const SizedBox(width: 12),
+
+          _buildFilterDropdown(
+            "Query Status", 
+            _selectedQueryStatus != null ? getQueryStatusLabel(_selectedQueryStatus!) : null, 
+            ['All Status', ...QueryStatus.values.map((e) => getQueryStatusLabel(e))], 
+            (v) => setState(() {
+              if (v == 'All Status') {
+                _selectedQueryStatus = null;
+              } else {
+                _selectedQueryStatus = QueryStatus.values.firstWhere((e) => getQueryStatusLabel(e) == v);
+              }
+            })
+          ),
         ],
       ),
     );
