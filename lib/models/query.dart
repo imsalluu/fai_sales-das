@@ -1,15 +1,16 @@
 enum QueryStatus { 
-  none,
+
   customOfferSent, 
   briefCustomOfferSent, 
   briefReplied, 
   quoteSent, 
   featureListSent, 
   noResponse, 
-  pass, 
-  spam, 
-  lowFocusCountry, 
-  conversationRunning 
+  pass,
+  none,
+  //spam,
+  //lowFocusCountry,
+  //conversationRunning
 }
 
 enum ConversationStatus { 

@@ -483,17 +483,18 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
     Color color;
 
     switch (status) {
+
+      case QueryStatus.customOfferSent: text = "CUSTOM OFFER SENT"; color = Colors.blue; break;
+      case QueryStatus.briefCustomOfferSent: text = "BRIEF CUSTOM OFFER SENT"; color = Colors.lightBlue; break;
+      case QueryStatus.briefReplied: text = "BRIEF REPLIED"; color = Colors.cyan; break;
+      case QueryStatus.quoteSent: text = "QUOTE SENT"; color = Colors.indigo; break;
+      case QueryStatus.featureListSent: text = "FEATURE LIST SENT"; color = Colors.teal; break;
+      case QueryStatus.noResponse: text = "NO RESPONSE"; color = Colors.grey; break;
+      case QueryStatus.pass: text = "PASS"; color = Colors.blueGrey; break;
       case QueryStatus.none: text = "NONE"; color = Colors.grey; break;
-      case QueryStatus.customOfferSent: text = "Custom Offer Sent"; color = Colors.blue; break;
-      case QueryStatus.briefCustomOfferSent: text = "Brief Custom Offer Sent"; color = Colors.lightBlue; break;
-      case QueryStatus.briefReplied: text = "Brief Replied"; color = Colors.cyan; break;
-      case QueryStatus.quoteSent: text = "Quote Sent"; color = Colors.indigo; break;
-      case QueryStatus.featureListSent: text = "Feature List Sent"; color = Colors.teal; break;
-      case QueryStatus.noResponse: text = "No Response"; color = Colors.grey; break;
-      case QueryStatus.pass: text = "Pass"; color = Colors.blueGrey; break;
-      case QueryStatus.spam: text = "Spam"; color = Colors.red.shade300; break;
-      case QueryStatus.lowFocusCountry: text = "Low Focus Country"; color = Colors.brown; break;
-      case QueryStatus.conversationRunning: text = "Conversation Running"; color = Colors.orange; break;
+      //case QueryStatus.spam: text = "Spam"; color = Colors.red.shade300; break;
+      //case QueryStatus.lowFocusCountry: text = "Low Focus Country"; color = Colors.brown; break;
+      //case QueryStatus.conversationRunning: text = "Conversation Running"; color = Colors.orange; break;
     }
 
     return _chip(text, color);
@@ -524,7 +525,7 @@ class _QueryManagementPageState extends ConsumerState<QueryManagementPage> {
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
-      child: Text(text, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+      child: Text(text, style: TextStyle(color: color, fontSize: 10,fontWeight: FontWeight.bold )),
     );
   }
 
@@ -809,9 +810,9 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                     dropdownColor: AppTheme.cardColor,
                     items: (() {
                       final items = [
-                        'NONE', 'Custom Website', 'Mobile App', 'AI Mobile App', 
-                        'AI Website', 'AI Agent', 'Chatbot', 'Not Clarified', 
-                        'N8N Automation', 'Bug Fixing'
+                        'Custom Website', 'Mobile App', 'AI Mobile App',
+                        'AI Website', 'AI Agent', 'Chatbot', 'Not Clarified'
+                        , 'Bug Fixing','AUTOMATION','BETTING PASS','WIX','FIGMA','NEED JOB PASS','NEED LEARNING PASS','NONE',
                       ];
                       if (!items.contains(_serviceLine)) items.add(_serviceLine);
                       return items;
@@ -846,7 +847,7 @@ class _AddQueryDialogState extends ConsumerState<_AddQueryDialog> {
                     ),
                     dropdownColor: AppTheme.cardColor,
                     items: QueryStatus.values.map((s) {
-                      String label = s.name.replaceAll(RegExp(r'(?=[A-Z])'), ' ').toLowerCase();
+                      String label = s.name.replaceAll(RegExp(r'(?=[A-Z])'), ' ').toUpperCase();
                       label = label[0].toUpperCase() + label.substring(1);
                       return DropdownMenuItem(value: s, child: Text(label));
                     }).toList(),
