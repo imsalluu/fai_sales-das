@@ -17,12 +17,28 @@ class ApiService {
   }
 
 
-  Future<NetworkResponse> getMyStats() async {
-    return _client.getRequest('$_baseUrl/dashboard/my-stats');
+  Future<NetworkResponse> getMyStats({int? year, int? month}) async {
+    String url = '$_baseUrl/dashboard/my-stats';
+    if (year != null && month != null) {
+      url += '?year=$year&month=$month';
+    } else if (year != null) {
+      url += '?year=$year';
+    } else if (month != null) {
+      url += '?month=$month';
+    }
+    return _client.getRequest(url);
   }
 
-  Future<NetworkResponse> getExecutiveStats() async {
-    return _client.getRequest('$_baseUrl/dashboard/executive-stats');
+  Future<NetworkResponse> getExecutiveStats({int? year, int? month}) async {
+    String url = '$_baseUrl/dashboard/executive-stats';
+    if (year != null && month != null) {
+      url += '?year=$year&month=$month';
+    } else if (year != null) {
+      url += '?year=$year';
+    } else if (month != null) {
+      url += '?month=$month';
+    }
+    return _client.getRequest(url);
   }
 
   Future<NetworkResponse> getProjects() async {

@@ -65,7 +65,7 @@ class _OverviewTab extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildWelcomeHeader(user),
+            _buildWelcomeHeader(context, ref, user),
             const SizedBox(height: 32),
             _buildStatsGrid(context, stats.stats),
             const SizedBox(height: 32),
@@ -87,7 +87,16 @@ class _OverviewTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildWelcomeHeader(User? user) {
+  Widget _buildWelcomeHeader(BuildContext context, WidgetRef ref, User? user) {
+    final selectedYear = ref.watch(selectedYearProvider);
+    final selectedMonth = ref.watch(selectedMonthProvider);
+    
+    final years = List.generate(5, (index) => DateTime.now().year - index);
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June', 
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(40),
@@ -104,6 +113,7 @@ class _OverviewTab extends ConsumerWidget {
         ),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,6 +134,70 @@ class _OverviewTab extends ConsumerWidget {
                     SizedBox(width: 8),
                     Text("Manage your daily progress with real-time data", style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
+                ),
+              ),
+            ],
+          ),
+          
+          // Date Filter Section
+          Row(
+            children: [
+              // Month Dropdown
+              Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: selectedMonth,
+                    dropdownColor: AppTheme.cardColor,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20),
+                    items: List.generate(12, (index) {
+                      return DropdownMenuItem(
+                        value: index + 1,
+                        child: Text(months[index], style: const TextStyle(color: Colors.white, fontSize: 14)),
+                      );
+                    }),
+                    onChanged: (val) {
+                      if (val != null) {
+                        ref.read(selectedMonthProvider.notifier).update(val);
+                      }
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              
+              // Year Dropdown
+              Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: selectedYear,
+                    dropdownColor: AppTheme.cardColor,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white, size: 20),
+                    items: years.map((year) {
+                      return DropdownMenuItem(
+                        value: year,
+                        child: Text(year.toString(), style: const TextStyle(color: Colors.white, fontSize: 14)),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      if (val != null) {
+                        ref.read(selectedYearProvider.notifier).update(val);
+                      }
+                    },
+                  ),
                 ),
               ),
             ],

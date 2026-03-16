@@ -11,11 +11,13 @@ import '../../models/user.dart';
 class DashboardLayout extends ConsumerWidget {
   final Widget child;
   final String title;
+  final Widget? topBarActions;
 
   const DashboardLayout({
     super.key,
     required this.child,
     required this.title,
+    this.topBarActions,
   });
 
   @override
@@ -189,6 +191,8 @@ class DashboardLayout extends ConsumerWidget {
             loading: () => const SizedBox(width: 48, child: Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.secondaryColor)))),
             error: (_, __) => const IconButton(onPressed: null, icon: Icon(Icons.notifications_off_rounded, color: AppTheme.mutedTextColor)),
           ),
+          if (topBarActions != null) const SizedBox(width: 8),
+          if (topBarActions != null) topBarActions!,
           const SizedBox(width: 24),
           Row(
             children: [

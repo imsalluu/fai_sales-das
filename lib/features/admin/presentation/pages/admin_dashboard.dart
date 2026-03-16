@@ -20,9 +20,81 @@ class AdminDashboard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentSection = ref.watch(navigationProvider);
     final statsAsync = ref.watch(executiveStatsProvider);
+    
+    final selectedYear = ref.watch(adminSelectedYearProvider);
+    final selectedMonth = ref.watch(adminSelectedMonthProvider);
+    
+    final years = List.generate(5, (index) => DateTime.now().year - index);
+    final months = [
+      'January', 'February', 'March', 'April', 'May', 'June', 
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
 
     return DashboardLayout(
       title: _getSectionTitle(currentSection),
+      topBarActions: currentSection == DashboardSection.overview ? Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Month Dropdown
+          Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: selectedMonth,
+                dropdownColor: AppTheme.cardColor,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 16),
+                items: List.generate(12, (index) {
+                  return DropdownMenuItem(
+                    value: index + 1,
+                    child: Text(months[index], style: const TextStyle(color: Colors.white, fontSize: 13)),
+                  );
+                }),
+                onChanged: (val) {
+                  if (val != null) {
+                    ref.read(adminSelectedMonthProvider.notifier).update(val);
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          
+          // Year Dropdown
+          Container(
+            height: 36,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.cardColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: selectedYear,
+                dropdownColor: AppTheme.cardColor,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white70, size: 16),
+                items: years.map((year) {
+                  return DropdownMenuItem(
+                    value: year,
+                    child: Text(year.toString(), style: const TextStyle(color: Colors.white, fontSize: 13)),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    ref.read(adminSelectedYearProvider.notifier).update(val);
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ) : null,
       child: statsAsync.when(
         data: (stats) => _buildSectionContent(currentSection, stats),
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.secondaryColor)),

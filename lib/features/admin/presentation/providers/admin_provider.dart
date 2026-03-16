@@ -111,9 +111,26 @@ class UserNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
+class AdminSelectedYearNotifier extends Notifier<int> {
+  @override
+  int build() => DateTime.now().year;
+  void update(int year) => state = year;
+}
+final adminSelectedYearProvider = NotifierProvider<AdminSelectedYearNotifier, int>(() => AdminSelectedYearNotifier());
+
+class AdminSelectedMonthNotifier extends Notifier<int> {
+  @override
+  int build() => DateTime.now().month;
+  void update(int month) => state = month;
+}
+final adminSelectedMonthProvider = NotifierProvider<AdminSelectedMonthNotifier, int>(() => AdminSelectedMonthNotifier());
+
 final executiveStatsProvider = FutureProvider<ExecutiveStats>((ref) async {
   final apiService = ref.watch(apiServiceProvider);
-  final response = await apiService.getExecutiveStats();
+  final year = ref.watch(adminSelectedYearProvider);
+  final month = ref.watch(adminSelectedMonthProvider);
+  
+  final response = await apiService.getExecutiveStats(year: year, month: month);
 
   if (response.isSuccess) {
     return ExecutiveStats.fromJson(response.responseData);
