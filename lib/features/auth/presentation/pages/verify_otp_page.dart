@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/auth_provider.dart';
+import '../providers/forgot_password_provider.dart';
 
-class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+class VerifyOtpPage extends ConsumerStatefulWidget {
+  const VerifyOtpPage({super.key});
 
   @override
-  ConsumerState<LoginPage> createState() => _LoginPageState();
+  ConsumerState<VerifyOtpPage> createState() => _VerifyOtpPageState();
 }
 
-class _LoginPageState extends ConsumerState<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+class _VerifyOtpPageState extends ConsumerState<VerifyOtpPage> {
+  final _otpController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
+    final state = ref.watch(forgotPasswordProvider);
 
     return Scaffold(
       body: Row(
@@ -42,7 +41,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     const SizedBox(height: 32),
                     Text(
-                      "FAI Sales Dashboard",
+                      "FAI Dashboard",
                       style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
@@ -51,7 +50,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      "Manage your sales funnel with smart efficiency",
+                      "Verify OTP",
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             color: Colors.white.withOpacity(0.8),
                             fontWeight: FontWeight.w500,
@@ -62,7 +61,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
             ),
           ),
-          // Right side: Login Form
+          // Right side: Verify OTP Form
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 100),
@@ -70,63 +69,53 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                   IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () {
+                      context.go('/forgot-password');
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    "Welcome Back",
+                    "Enter OTP",
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 8),
-                  const Text("Please enter your details to login"),
+                  Text("We've sent an OTP to \${state.email}. Please enter it below."),
                   const SizedBox(height: 32),
                   TextField(
-                    controller: _emailController,
+                    controller: _otpController,
                     decoration: const InputDecoration(
-                      labelText: "Email",
+                      labelText: "OTP",
                       border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.email),
+                      prefixIcon: Icon(Icons.message),
                     ),
+                    onChanged: (value) {
+                      ref.read(forgotPasswordProvider.notifier).setOtp(value);
+                    },
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: "Password",
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lock),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {
-                        context.go('/forgot-password');
-                      },
-                      child: Text(
-                        "Forgot Password?",
-                        style: TextStyle(color: Theme.of(context).primaryColor),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (authState.error != null)
+                  const SizedBox(height: 24),
+                  if (state.error != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: Text(authState.error!, style: const TextStyle(color: Colors.red)),
+                      child: Text(state.error!, style: const TextStyle(color: Colors.red)),
                     ),
                   SizedBox(
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: authState.isLoading
+                      onPressed: state.isLoading
                           ? null
-                          : () {
-                              ref.read(authProvider.notifier).login(
-                                    _emailController.text,
-                                    _passwordController.text,
-                                  );
+                          : () async {
+                              final success = await ref.read(forgotPasswordProvider.notifier).verifyOtp();
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(state.successMessage ?? 'OTP Verified')),
+                                );
+                                context.go('/reset-password');
+                              }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).primaryColor,
@@ -135,9 +124,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: authState.isLoading
+                      child: state.isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("Login", style: TextStyle(fontSize: 16)),
+                          : const Text("Verify", style: TextStyle(fontSize: 16)),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -148,5 +137,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _otpController.dispose();
+    super.dispose();
   }
 }

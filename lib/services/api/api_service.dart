@@ -108,4 +108,31 @@ class ApiService {
   Future<NetworkResponse> getNotifications() async {
     return _client.getRequest('$_baseUrl/notifications');
   }
+
+  // --- Password Recovery Methods ---
+
+  Future<NetworkResponse> forgotPassword(String email) async {
+    return _client.postRequest(
+      '$_baseUrl/auth/forgot-password',
+      body: {'email': email},
+    );
+  }
+
+  Future<NetworkResponse> verifyOtp(String email, String otp) async {
+    return _client.postRequest(
+      '$_baseUrl/auth/verify-otp',
+      body: {'email': email, 'otp': otp},
+    );
+  }
+
+  Future<NetworkResponse> resetPassword(String email, String otp, String newPassword) async {
+    return _client.postRequest(
+      '$_baseUrl/auth/reset-password',
+      body: {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+      },
+    );
+  }
 }
