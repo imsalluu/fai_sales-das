@@ -158,7 +158,7 @@ class DashboardLayout extends ConsumerWidget {
       children: [
         Image.asset(
           'assets/images/fai_logo.png',
-          height: 90,
+          height: 170,
           fit: BoxFit.contain,
         ),
       ],
