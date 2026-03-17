@@ -104,25 +104,25 @@ class DashboardLayout extends ConsumerWidget {
     return [
       _SidebarItem(
         icon: Icons.grid_view_rounded,
-        title: "Overview",
+        title: "Executive Dashboard",
         isActive: current == DashboardSection.overview,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.overview,
       ),
       _SidebarItem(
         icon: Icons.groups_rounded,
-        title: "Sales Team",
+        title: "Sales Management",
         isActive: current == DashboardSection.team,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.team,
       ),
       _SidebarItem(
         icon: Icons.chat_bubble_outline_rounded,
-        title: "All Queries",
+        title: "Sales",
         isActive: current == DashboardSection.queries,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.queries,
       ),
       _SidebarItem(
         icon: Icons.bar_chart_rounded,
-        title: "Performance",
+        title: "Performance Statistics",
         isActive: current == DashboardSection.analytics,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.analytics,
       ),
@@ -133,19 +133,19 @@ class DashboardLayout extends ConsumerWidget {
     return [
       _SidebarItem(
         icon: Icons.analytics_outlined,
-        title: "My Stats",
+        title: "Sales Performance",
         isActive: current == DashboardSection.salesOverview,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.salesOverview,
       ),
       _SidebarItem(
         icon: Icons.add_circle_outline_rounded,
-        title: "Submit Query",
+        title: "Register New Query",
         isActive: current == DashboardSection.addLead,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.addLead,
       ),
       _SidebarItem(
         icon: Icons.chat_bubble_outline_rounded,
-        title: "All Queries",
+        title: "Sales",
         isActive: current == DashboardSection.mySales,
         onTap: () => ref.read(navigationProvider.notifier).state = DashboardSection.mySales,
       ),
@@ -305,7 +305,7 @@ class _Breadcrumbs extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Text("Dashboard", style: TextStyle(color: AppTheme.mutedTextColor, fontSize: 14)),
+        // const Text("Dashboard", style: TextStyle(color: AppTheme.mutedTextColor, fontSize: 14)),
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: Icon(Icons.chevron_right, size: 16, color: AppTheme.mutedTextColor),

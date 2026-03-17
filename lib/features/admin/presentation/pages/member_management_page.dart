@@ -131,7 +131,7 @@ class _MemberManagementPageState extends ConsumerState<MemberManagementPage> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Sales Force Alpha", style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1)),
+                // Text("Sales Force Alpha", style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -1)),
                 const SizedBox(height: 4),
                 Text("Personnel Roster & Operational Authorizations", style: GoogleFonts.outfit(fontSize: 14, color: AppTheme.mutedTextColor, fontWeight: FontWeight.w500)),
               ],
